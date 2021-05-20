@@ -1,0 +1,174 @@
+Instalar Apache y PHP:
+
+- apt install apache2
+
+Comprobación por terminal:
+
+- ufw app list
+
+Instalar PHP:
+
+- apt install software-properties-common
+- add-apt-repository ppa:ondrej/php
+- apt install php
+
+Comprobar versión de PHP:
+
+- php - -version
+
+Instalar MySQL Server:
+
+- apt install mysql-server
+
+Configurar MySQL (crear contraseña para MySQL):
+
+- mysql_secure_installation
+
+Acceder a la base de datos:
+
+- sudo mysql -u root -p
+
+Procedemos a crear la base de datos, tabla y usuario principal:
+
+A continuación se crea la base de datos nextcloud:
+
+> CREATE DATABASE nextcloud;
+
+Se crea el usuario rolando y su respectiva contraseña en MySQL:
+
+> CREATE USER 'rolando'@'localhost' IDENTIFIED BY 'Pa$$w0rd40784130';
+
+Se da todos los privilegios al usuario rolando para la base de datos nextcloud:
+
+> GRANT ALL PRIVILEGES ON nextcloud. * TO 'rolando'@'localhost';
+
+Actualizamos todos los privilegios de la base de datos:
+
+> FLUSH PRIVILEGES;
+
+Salimos del entorno MySQL al entorno SSH Linux:
+
+> exit (o Control + D)
+
+Instalar NextCloud:
+
+Descargamos el instalador en la ruta /var/www:
+
+- cd /var/www
+- wget [https://download.nextcloud.com/server/releases/nextcloud-21.0.1.zip](https://download.nextcloud.com/server/releases/nextcloud-21.0.1.zip)
+- unzip nextcloud-21.0.0.zip
+
+Damos permisos de escritura a la ruta /var/www/nextcloud:
+
+- sudo chown -R www-data:www-data nextcloud
+
+De manera opcional, se puede eliminar el archivo zip descargado:
+
+- sudo rm nextcloud-14-latest.tar.bz2
+
+**Tenemos que crear el siguiente archivo en la siguiente ruta:** */etc/apache2/sites-available/nextcloud.conf*
+
+Para ello usamos el siguiente comando:
+
+- nano */etc/apache2/sites-available/nextcloud.conf*
+
+Y agregamos **el siguiente contenido:**
+
+Alias /nextcloud "/var/www/nextcloud/"
+
+<Directory /var/www/nextcloud/>
+
+Options +FollowSymlinks
+
+AllowOverride All
+
+<IfModule mod_dav.c>
+
+Dav off
+
+</IfModule>
+
+SetEnv HOME /var/www/nextcloud
+
+SetEnv HTTP_HOME /var/www/nextcloud
+
+</Directory>
+
+Finalmente habilitar estas configuraciones de Apache:
+
+systemctl reload apache2
+
+a2ensite nextcloud
+
+a2enmod rewrite headers env dir mime
+
+systemctl reload apache2
+
+ufw allow http
+
+ufw allow https
+
+En el navegador ingresar a:
+
+localhost/nextcloud
+
+En el navegador, en la ventana de configuracion de Nextcloud se solicitan los siguientes datos:
+
+Crear cuenta de administrador y contraseña.
+
+Elegir la ruta de los datos en el servidor.
+
+Usuario y contraseña de la base de datos Nextcloud:
+
+Nombre de la base de datos y dirección de dominio, en este caso como ejemplo será localhost.
+
+Al completar la instalación en el navegador se creará automaticamente el siguiente archivo en el servidor:
+
+/var/www/html/nextcloud/config/config.php
+
+Donde se puede configurar los dominios que puede tener la nube.
+
+Instalamos un programa requisito llamado Node.js, que es un entorno de ejecución en Java Script.
+
+curl -sL [https://deb.nodesource.com/setup_6.x](https://deb.nodesource.com/setup_6.x) | sudo bash -
+
+Instalamos PostgreSQL y creamos la base de datos para ONLYOFFICE, un usuario y le damos permisos sobre ella:
+
+- apt-get install postgresql -y
+- sudo i -u postgres psql -c "CREATE DATABASE onlyoffice;"
+- sudo -i -u postgres psql -c "CREATE USER onlyoffice WITH password 'onlyoffice';"
+- sudo -i -u postgres psql -c "GRANT ALL privileges ON DATABASE onlyoffice TO onlyoffice;"
+
+Instalamos Redis, RabbitMQ y Node.js:
+
+- apt-get install redis-server -y
+- sudo apt-get install rabbitmq-server -y
+- sudo apt-get install nodejs
+- sudo apt-get install nginx-extras
+
+Añadimos la clave GPG y añadimos el repositorio de Document Server, actualizamos e instalamos ONLYOFFICE Document Server, durante la instalación nos solicitará la contraseña para PostgreSQL, indicaremos el usuario y contraseña que hemos establecido previamente:
+
+- echo onlyoffice-documentserver onlyoffice/ds-port select 8081 | sudo debconf-set-selections
+
+Establecemos el puerto 8081, debido a que el puerto 80 está ocupado por el servidor Apache.
+
+Añadimos clave GPG (GNU Privacy Guard):
+
+- sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
+- sudo echo "deb [https://download.onlyoffice.com/repo/debian](https://download.onlyoffice.com/repo/debian) squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
+- sudo apt-get update
+
+Instalamos compatibilidad de tipos de fuente.
+
+- sudo apt-get install ttf-mscorefonts-installer
+
+Finalmente instalamos el servidor de documentos OnlyOffice:
+
+- sudo apt-get install onlyoffice-documentserver
+
+Docker:
+
+- sudo curl -L "[https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$](https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$)(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+Para finalizar, en configuración de aplicaciones de Nextcloud, elegimos a OnlyOffice y le asignamos la siguiente direccion:
+- localhost:8081
